@@ -1,164 +1,388 @@
-import requests
-from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 import time
 from datetime import datetime
+import re
+import json
+import os
+import random as rd
 
-HEADERS = {
-    'User-Agent': 'SkillScout/1.0 (Job Market Analytics; +https://github.com/ZN-0X/skillscout)',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.9',
-}
+OUTPUT_DIR = "data/raw"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+roles = [
+    # ==================== SOFTWARE DEVELOPMENT ====================
+    "Software Engineer",
+    "Software Developer",
+    "Full Stack Developer",
+    "Frontend Developer",
+    "Backend Developer",
+    "Web Developer",
+    "Mobile Developer",
+    "iOS Developer",
+    "Android Developer",
+    "React Native Developer",
+    "Flutter Developer",
+    "DevOps Engineer",
+    "Site Reliability Engineer (SRE)",
+    "Embedded Systems Engineer",
+    "Firmware Engineer",
+    "Game Developer",
+    "Unity Developer",
+    "Unreal Engine Developer",
+    "Desktop Application Developer",
+    "API Developer",
+    "Integration Engineer",
+    "Middleware Developer",
+    
+    # ==================== DATA & ANALYTICS ====================
+    "Data Scientist",
+    "Data Analyst",
+    "Data Engineer",
+    "Machine Learning Engineer",
+    "AI Engineer",
+    "Business Intelligence Analyst",
+    "BI Developer",
+    "Data Architect",
+    "Database Administrator (DBA)",
+    "Big Data Engineer",
+    "Data Quality Analyst",
+    "Quantitative Analyst",
+    "Research Scientist (AI/ML)",
+    "Computer Vision Engineer",
+    "NLP Engineer",
+    "MLOps Engineer",
+    
+    # ==================== CLOUD & INFRASTRUCTURE ====================
+    "Cloud Engineer",
+    "Cloud Architect",
+    "AWS Solutions Architect",
+    "Azure Cloud Engineer",
+    "Google Cloud Engineer",
+    "Infrastructure Engineer",
+    "Network Engineer",
+    "Systems Engineer",
+    "Systems Administrator",
+    "Linux Administrator",
+    "Windows Server Administrator",
+    "Virtualization Engineer",
+    "Containerization Engineer",
+    "Kubernetes Administrator",
+    "Docker Engineer",
+    
+    # ==================== SECURITY ====================
+    "Cybersecurity Engineer",
+    "Security Engineer",
+    "Information Security Analyst",
+    "Penetration Tester",
+    "Ethical Hacker",
+    "Security Operations Center (SOC) Analyst",
+    "Security Architect",
+    "Network Security Engineer",
+    "Application Security Engineer",
+    "Cloud Security Engineer",
+    "Cryptographer",
+    "Security Consultant",
+    "Vulnerability Analyst",
+    "Threat Intelligence Analyst",
+    "Digital Forensics Analyst",
+    
+    # ==================== QUALITY & TESTING ====================
+    "QA Engineer",
+    "Test Engineer",
+    "Automation Test Engineer",
+    "Performance Test Engineer",
+    "Manual Tester",
+    "QA Analyst",
+    "Test Automation Developer",
+    "SDET (Software Development Engineer in Test)",
+    "Quality Assurance Lead",
+    "Test Architect",
+    
+    # ==================== PRODUCT & PROJECT ====================
+    "Product Manager",
+    "Technical Product Manager",
+    "Product Owner",
+    "Project Manager",
+    "Technical Project Manager",
+    "Scrum Master",
+    "Agile Coach",
+    "Program Manager",
+    "Delivery Manager",
+    
+    # ==================== UX/UI & DESIGN ====================
+    "UX Designer",
+    "UI Designer",
+    "UX/UI Designer",
+    "Product Designer",
+    "Interaction Designer",
+    "Visual Designer",
+    "UX Researcher",
+    "Information Architect",
+    "Motion Designer",
+    "Design System Designer",
+    "UX Writer",
+    
+    # ==================== BUSINESS & SYSTEMS ====================
+    "Business Analyst",
+    "Technical Business Analyst",
+    "Systems Analyst",
+    "Solution Architect",
+    "Enterprise Architect",
+    "Technical Architect",
+    "Application Architect",
+    "Integration Architect",
+    "CRM Developer",
+    "ERP Consultant",
+    "SAP Consultant",
+    "Salesforce Developer",
+    "Dynamics 365 Developer",
+    
+    # ==================== WEB & DIGITAL ====================
+    "WordPress Developer",
+    "Shopify Developer",
+    "Magento Developer",
+    "E-commerce Developer",
+    "CMS Developer",
+    "Frontend Architect",
+    "JavaScript Developer",
+    "TypeScript Developer",
+    
+    # ==================== EMERGING TECH ====================
+    "Blockchain Developer",
+    "Smart Contract Developer",
+    "Web3 Developer",
+    "IoT Engineer",
+    "AR/VR Developer",
+    "Metaverse Developer",
+    "Robotics Engineer",
+    "5G Engineer",
+    "Edge Computing Engineer",
+    
+    # ==================== SUPPORT & OPERATIONS ====================
+    "Technical Support Engineer",
+    "IT Support Specialist",
+    "Help Desk Technician",
+    "Desktop Support Engineer",
+    "Application Support Engineer",
+    "Database Support Engineer",
+    "NOC Technician",
+    "IT Operations Manager",
+    
+    # ==================== MANAGEMENT & LEADERSHIP ====================
+    "Engineering Manager",
+    "Development Manager",
+    "Technical Lead",
+    "Team Lead",
+    "CTO (Chief Technology Officer)",
+    "VP of Engineering",
+    "Head of Engineering",
+    "Director of Engineering",
+    "IT Manager",
+    "IT Director",
+    "CIO (Chief Information Officer)",
+    
+    # ==================== CONSULTING ====================
+    "Technical Consultant",
+    "IT Consultant",
+    "Software Consultant",
+    "Cloud Consultant",
+    "Security Consultant",
+    "Digital Transformation Consultant",
+    
+    # ==================== ACADEMIC & RESEARCH ====================
+    "Research Engineer",
+    "Academic Researcher",
+    "Computer Science Instructor",
+    "Technical Trainer",
+    "Curriculum Developer",
+    
+    # ==================== CONTENT & TECHNICAL WRITING ====================
+    "Technical Writer",
+    "Documentation Engineer",
+    "API Documentation Writer",
+    "Developer Advocate",
+    "Developer Relations Engineer",
+    "Community Manager",
+    "Technical Content Writer",
+    
+    # ==================== SPECIALIZED ROLES ====================
+    "GIS Developer",
+    "Bioinformatics Engineer",
+    "Quantitative Developer",
+    "Algorithm Engineer",
+    "High-Frequency Trading Developer",
+    "Graphics Programmer",
+    "Shader Programmer",
+    "Audio Programmer",
+    "Tools Developer",
+    "Compiler Engineer",
+    "Kernel Developer",
+    "Firmware Developer",
+    
+    # ==================== LOW-CODE/NO-CODE ====================
+    "Power Platform Developer",
+    "Power Apps Developer",
+    "Power BI Developer",
+    "Low-Code Developer",
+    "RPA Developer",
+    "Automation Engineer",
+    
+    # ==================== PLATFORM SPECIFIC ====================
+    "SharePoint Developer",
+    "ServiceNow Developer",
+    "Oracle Developer",
+    "SAP ABAP Developer",
+    "Mainframe Developer",
+    "COBOL Developer",
+    
+    # ==================== FRAMEWORK SPECIALISTS ====================
+    "React Developer",
+    "Vue.js Developer",
+    "Angular Developer",
+    "Node.js Developer",
+    "Django Developer",
+    "Flask Developer",
+    "Spring Boot Developer",
+    ".NET Developer",
+    "Laravel Developer",
+    "Ruby on Rails Developer"]
+roles = sorted(roles)
+one_role = rd.choice(roles)
 
-def fetch_rozee_jobs(skill="python", max_pages=1):
+def fetch_rozee_jobs(skill, max_pages=1):
     jobs = []
-    base_url = f"https://www.rozee.pk/job/jsearch/q/{skill}"
-    
-    print(f"Searching for '{skill}' jobs on Rozee.pk...")
-    print("=" * 60)
-    
-    for page in range(1, max_pages + 1):
-        print(f"\nScraping page {page}...")
-        if page == 1:
-            url = base_url
-        else:
-            url = f"{base_url}/p{page}"
-        
-        print(f"URL: {url}")
-        
-        try:
-            response = requests.get(url, headers=HEADERS, timeout=10)
-            response.raise_for_status()
-            print(f"Request successful (Status: {response.status_code})")
-            soup = BeautifulSoup(response.text, 'html.parser')
-            job_container = soup.find('div', {'class': 'jlist', 'id': 'jobs'})
-            
-            if not job_container:
-                print(f"No job container found on page {page}")
-                break
-            
-            job_cards = job_container.find_all('div', class_='job')
-            print(f"Found {len(job_cards)} job cards")
-            for i, card in enumerate(job_cards, 1):
-                print(f"Extracting job {i}...", end=" ")
-                job_data = extract_job_data(card)
-                
-                if job_data:
-                    jobs.append(job_data)
-                    print(f"{job_data['title']}")
-                else:
-                    print(" Failed")
 
-            if page < max_pages:
-                print(f"\nWaiting 2 seconds before next page...")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+
+        base_url = f"https://www.rozee.pk/job/jsearch/q/{skill}"
+
+        for page_num in range(1, max_pages + 1):
+            url = base_url if page_num == 1 else f"{base_url}/p{page_num}"
+            print(f"Loading: {url}")
+
+            page.goto(url, timeout=60000)
+            time.sleep(5)
+
+            job_cards = page.query_selector_all("div.job")
+            print(f"Found {len(job_cards)} jobs")
+
+            for card in job_cards:
+                job = extract_single_job(card)
+                if job and job.get("title"):
+                    jobs.append(job)
+
+            if page_num < max_pages:
                 time.sleep(2)
-                
-        except requests.RequestException as e:
-            print(f"Error: {e}")
-            break
-    
-    print("\n" + "=" * 60)
-    print(f"Scraping complete! Total jobs: {len(jobs)}")
+
+        browser.close()
+
+    print(f"Scraping complete. Total jobs: {len(jobs)}")
     return jobs
 
-def extract_job_data(card):
-    try:
-        job = {}
-        title_tag = card.find('h3', class_='s-18')
-        if title_tag:
-            link = title_tag.find('a')
-            if link:
-                job['title'] = link.get_text(strip=True)
-                href = link.get('href')
-                job['url'] = f"https:{href}" if href and href.startswith('//') else href
 
-        company_tag = card.find('div', class_='cname')
-        if company_tag:
-            links = company_tag.find_all('a')
+# ==========================================
+# PAGE EXTRACTION
+# ==========================================
+def extract_single_job(card):
+    job = {}
 
-            if len(links) > 0:
-                company_text = links[0].get_text(strip=True)
-                job['company'] = company_text.rstrip(',').strip()
-            
-            if len(links) > 1:
-                job['city'] = links[1].get_text(strip=True)
-
-            if len(links) > 2:
-                job['country'] = links[2].get_text(strip=True).lstrip(',').strip()
-
-            location_parts = []
-            if job.get('city'):
-                location_parts.append(job['city'])
-            if job.get('country'):
-                location_parts.append(job['country'])
-            job['location'] = ', '.join(location_parts)
-        desc_tag = card.find('div', class_='jbody')
-        if desc_tag:
-            job['description'] = desc_tag.get_text(strip=True)
-        calendar_icon = card.find('i', class_='rz-calendar')
-        if calendar_icon:
-            date_span = calendar_icon.parent
-            if date_span:
-                date_text = date_span.get_text(strip=True)
-                job['posted_date'] = date_text
-        exp_tag = card.find('span', class_='func-area-drn')
-        if exp_tag:
-            job['experience'] = exp_tag.get_text(strip=True)
-        skills_tags = card.find_all('span', class_='label label-default')
-        skills = [skill.get_text(strip=True) for skill in skills_tags]
-        job['skills'] = skills
-        job['source'] = 'rozee'
-        job['scraped_date'] = datetime.now().isoformat()
-        
-        return job
-        
-    except Exception as e:
-        # If anything goes wrong, print error and return None
-        print(f"Error extracting job: {e}")
+    title_el = card.query_selector("div.jhead h3 a, h3 a")
+    if not title_el:
         return None
 
+    job["title"] = clean_text(title_el.inner_text())
+    href = title_el.get_attribute("href")
+    job["url"] = f"https://www.rozee.pk/{href.lstrip('/')}" if href else None
+
+    # COMPANY
+    company_el = card.query_selector("div.cname a, div.jcompany a")
+    job["company"] = clean_text(company_el.inner_text()) if company_el else "Unknown"
+
+    # LOCATION
+    location = "Pakistan"
+    cname_div = card.query_selector("div.cname")
+    if cname_div:
+        links = cname_div.query_selector_all("a")
+        if len(links) > 1:
+            parts = [clean_text(l.inner_text()) for l in links[1:] if clean_text(l.inner_text())]
+            if parts:
+                location = ", ".join(parts) + ", Pakistan"
+
+    job["location"] = location
+
+    # DESCRIPTION
+    desc_el = card.query_selector("div.jbody")
+    if desc_el:
+        text = clean_text(desc_el.inner_text())
+        job["description"] = text[:500]
+
+    # POSTED DATE
+    footer = card.query_selector("div.jfooter")
+    if footer:
+        text = clean_text(footer.inner_text())
+        abs_date = re.search(
+            r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}",
+            text
+        )
+        rel_date = re.search(r"\d+\s+(day|days|hour|hours|week|weeks)\s+ago", text, re.I)
+
+        if abs_date:
+            job["posted_date"] = abs_date.group(0)
+        elif rel_date:
+            job["posted_date"] = rel_date.group(0)
+
+    # EXPERIENCE
+    exp_el = card.query_selector("span.func-area-drn")
+    if exp_el:
+        exp_text = clean_text(exp_el.inner_text())
+        job["experience_text"] = exp_text
+
+        match = re.search(r"(\d+)\s*(Year|Years)", exp_text, re.I)
+        if match:
+            job["experience_years"] = int(match.group(1))
+
+    # SKILLS
+    skills = []
+    for s in card.query_selector_all("span.label"):
+        val = clean_text(s.inner_text())
+        if val and len(val) < 50:
+            skills.append(val)
+
+    job["skills"] = skills
+    job["skill_count"] = len(skills)
+
+    # METADATA
+    job["source"] = "rozee.pk"
+    job["scraped_at"] = datetime.utcnow().isoformat()
+
+    return job
+
+
+# ==========================================
+# HELPERS
+# ==========================================
+def clean_text(text):
+    return " ".join(text.split()).strip(" ,.-") if text else ""
+
+
+def save_jobs_to_json(jobs, filename):
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(jobs, f, indent=2, ensure_ascii=False)
+    print(f"Saved {len(jobs)} jobs to {filename}")
+
+
+# ==========================================
+# RUN
+# ==========================================
 if __name__ == "__main__":
-    """
-    This only runs when you execute the file directly:
-    python src/extractors/rozee_scraper.py
-    """
+    print("Starting rozee.pk scraper...")
     
-    print("\n" + "=" * 60)
-    print("SKILLSCOUT - ROZEE.PK SCRAPER")
-    print("=" * 60)
-    
-    # Scrape 1 page of Python jobs
-    jobs = fetch_rozee_jobs("python", max_pages=1)
-    
-    # Display results
-    print(f"\nRESULTS:")
-    print(f"   Total jobs scraped: {len(jobs)}")
-    
+    jobs = fetch_rozee_jobs(skill=one_role, max_pages=1)
+
     if jobs:
-        print(f"\nEXAMPLE JOB (First result):")
-        print("-" * 60)
-        
-        # Print first job in readable format
-        first_job = jobs[0]
-        for key, value in first_job.items():
-            # Handle skills list specially
-            if key == 'skills' and isinstance(value, list):
-                print(f"   {key}: {', '.join(value)}")
-            else:
-                # Truncate long descriptions
-                if key == 'description' and len(str(value)) > 100:
-                    print(f"   {key}: {str(value)[:100]}...")
-                else:
-                    print(f"   {key}: {value}")
-        
-        print("-" * 60)
-        
-        # Show all job titles
-        print(f"\nALL JOB TITLES:")
-        for i, job in enumerate(jobs, 1):
-            print(f"   {i}. {job.get('title', 'N/A')} at {job.get('company', 'N/A')}")
-    
+        output_path = os.path.join(OUTPUT_DIR, "rozee_raw_data.json")
+        save_jobs_to_json(jobs, output_path)
+        print(f"Data saved to: {output_path}")
     else:
-        print("No jobs found!")
-    
-    print("\n" + "=" * 60)
-    print("Done!")
+        print("No jobs found")
