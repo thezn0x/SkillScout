@@ -15,4 +15,4 @@ class MustakbilExtractor(Extractor):
     def extract_single_job(self):
         job = {}
 
-
+# This is just a template
