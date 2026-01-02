@@ -1,35 +1,38 @@
 from playwright.sync_api import sync_playwright
 import json
-import time
-from playwright.sync_api import sync_playwright
 from typing import List,Dict,Any
+from .roles import one_role
 
 class Extractor:
-    def __init__(self, role:str, base_url:str,cards_class:str):
-        self.role = role
+    def __init__(self, base_url:str,card:str):
         self.base_url = base_url
-        self.cards_class = cards_class
+        self.card = card
+        self.role = one_role
 
     def fetch_jobs(self, max_pages:int = 1) -> List[Any]:
         jobs = []
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
-            for page_num in range(1, max_pages+1):
-                url = self.base_url if page_num == 1 else f"{self.base_url}/p{page_num}"
+            for page_num_1,page_num_0 in zip(range(1,max_pages+1),range(0,max_pages+1)):
+                if self.base_url=="https://www.careerjet.com.pk/jobs?l=Pakistan&nw=1&s=":
+                    url = self.base_url+self.role if page_num_1 == 1 else f"{self.base_url}{self.role}&p{page_num_1}"
+                elif self.base_url=="https://www.rozee.pk/job/jsearch/q/":
+                    url = self.base_url+self.role if page_num_0 == 0 else f"{self.base_url}{self.role}/stype/title/fpn/{page_num_0*20}"
+                    print(url)
                 page.goto(url, timeout=60000)
-                time.sleep(6.0)
-                job_cards = page.query_selector_all(f"div.{self.cards_class}")
+                job_cards = page.query_selector_all(f"{self.card}")
                 for card in job_cards:
-                    job = self.extract_single_job(card)
+                    job = self.extract(card)
                     if job and job.get("title"):
                         jobs.append(job)
-        return jobs
+            return jobs
     @staticmethod
     def clean_text(text:str) -> str:
         return " ".join(text.split()).strip(" ,.-") if text else ""
 
     @staticmethod
     def save_jobs(filename: str, jobs: List[Dict]) -> None:
+        print("save_jobs started")
         with open(filename, "w") as f:
             json.dump(jobs, f, indent=2, ensure_ascii=False)

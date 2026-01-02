@@ -237,5 +237,6 @@ roles = [
     ".NET Developer",
     "Laravel Developer",
     "Ruby on Rails Developer"]
+
 roles = sorted(roles)
 one_role = rd.choice(roles)

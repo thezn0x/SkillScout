@@ -1,18 +1,15 @@
-from playwright.sync_api import sync_playwright
-import time
-from datetime import datetime
+
 import re
-import json
 import os
-import random as rd
+from datetime import datetime
 from .base import Extractor
-from .roles import one_role
+from typing import Dict,Any
 
 OUTPUT_DIR = "data/raw"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 class RozeeExtractor(Extractor):
-    def extract_single_job(self,card):
+    def extract(self,card) -> Dict[str,Any]:
         job = {}  # TO STORE JOB DATA
         # GET TITLE
         title_element = card.query_selector("div.jhead h3 a,h3 a")
@@ -27,9 +24,9 @@ class RozeeExtractor(Extractor):
         location = "Pakistan"
         cname_div = card.query_selector("div.cname")
         if cname_div:
-            links = cname_div.query_selector_all("a")
+            links = cname_div.query_selector_all("a") 
             if len(links) > 1:
-                parts = [self.clean_text(l.inner_text()) for l in links[1:] if self.clean_text(l.inner_text())]
+                parts = [self.clean_text(link.inner_text()) for link in links[1:] if self.clean_text(link.inner_text())]
                 if parts:
                     location = ", ".join(parts) + ", Pakistan"
         job["location"]=location
