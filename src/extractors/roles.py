@@ -1,0 +1,288 @@
+import random as rd
+
+roles = [
+    # ==================== SOFTWARE DEVELOPMENT ====================
+    "Software Engineer",
+    "Software Developer",
+    "Full Stack Developer",
+    "Frontend Developer",
+    "Backend Developer",
+    "Web Developer",
+    "Mobile Developer",
+    "iOS Developer",
+    "Android Developer",
+    "React Native Developer",
+    "Flutter Developer",
+    "DevOps Engineer",
+    "Site Reliability Engineer (SRE)",
+    "Embedded Systems Engineer",
+    "Firmware Engineer",
+    "Game Developer",
+    "Unity Developer",
+    "Unreal Engine Developer",
+    "Desktop Application Developer",
+    "API Developer",
+    "Integration Engineer",
+    "Middleware Developer",
+    
+    # ==================== DATA & ANALYTICS ====================
+    "Data Scientist",
+    "Data Analyst",
+    "Data Engineer",
+    "Machine Learning Engineer",
+    "AI Engineer",
+    "Business Intelligence Analyst",
+    "BI Developer",
+    "Data Architect",
+    "Database Administrator (DBA)",
+    "Big Data Engineer",
+    "Data Quality Analyst",
+    "Quantitative Analyst",
+    "Research Scientist (AI/ML)",
+    "Computer Vision Engineer",
+    "NLP Engineer",
+    "MLOps Engineer",
+    
+    # ==================== CLOUD & INFRASTRUCTURE ====================
+    "Cloud Engineer",
+    "Cloud Architect",
+    "AWS Solutions Architect",
+    "Azure Cloud Engineer",
+    "Google Cloud Engineer",
+    "Infrastructure Engineer",
+    "Network Engineer",
+    "Systems Engineer",
+    "Systems Administrator",
+    "Linux Administrator",
+    "Windows Server Administrator",
+    "Virtualization Engineer",
+    "Containerization Engineer",
+    "Kubernetes Administrator",
+    "Docker Engineer",
+    
+    # ==================== SECURITY ====================
+    "Cybersecurity Engineer",
+    "Security Engineer",
+    "Information Security Analyst",
+    "Penetration Tester",
+    "Ethical Hacker",
+    "Security Operations Center (SOC) Analyst",
+    "Security Architect",
+    "Network Security Engineer",
+    "Application Security Engineer",
+    "Cloud Security Engineer",
+    "Cryptographer",
+    "Security Consultant",
+    "Vulnerability Analyst",
+    "Threat Intelligence Analyst",
+    "Digital Forensics Analyst",
+    
+    # ==================== QUALITY & TESTING ====================
+    "QA Engineer",
+    "Test Engineer",
+    "Automation Test Engineer",
+    "Performance Test Engineer",
+    "Manual Tester",
+    "QA Analyst",
+    "Test Automation Developer",
+    "SDET (Software Development Engineer in Test)",
+    "Quality Assurance Lead",
+    "Test Architect",
+    
+    # ==================== PRODUCT & PROJECT ====================
+    "Product Manager",
+    "Technical Product Manager",
+    "Product Owner",
+    "Project Manager",
+    "Technical Project Manager",
+    "Scrum Master",
+    "Agile Coach",
+    "Program Manager",
+    "Delivery Manager",
+    
+    # ==================== UX/UI & DESIGN ====================
+    "UX Designer",
+    "UI Designer",
+    "UX/UI Designer",
+    "Product Designer",
+    "Interaction Designer",
+    "Visual Designer",
+    "UX Researcher",
+    "Information Architect",
+    "Motion Designer",
+    "Design System Designer",
+    "UX Writer",
+    
+    # ==================== BUSINESS & SYSTEMS ====================
+    "Business Analyst",
+    "Technical Business Analyst",
+    "Systems Analyst",
+    "Solution Architect",
+    "Enterprise Architect",
+    "Technical Architect",
+    "Application Architect",
+    "Integration Architect",
+    "CRM Developer",
+    "ERP Consultant",
+    "SAP Consultant",
+    "Salesforce Developer",
+    "Dynamics 365 Developer",
+    
+    # ==================== WEB & DIGITAL ====================
+    "WordPress Developer",
+    "Shopify Developer",
+    "Magento Developer",
+    "E-commerce Developer",
+    "CMS Developer",
+    "Frontend Architect",
+    "JavaScript Developer",
+    "TypeScript Developer",
+    
+    # ==================== EMERGING TECH ====================
+    "Blockchain Developer",
+    "Smart Contract Developer",
+    "Web3 Developer",
+    "IoT Engineer",
+    "AR/VR Developer",
+    "Metaverse Developer",
+    "Robotics Engineer",
+    "5G Engineer",
+    "Edge Computing Engineer",
+    
+    # ==================== SUPPORT & OPERATIONS ====================
+    "Technical Support Engineer",
+    "IT Support Specialist",
+    "Help Desk Technician",
+    "Desktop Support Engineer",
+    "Application Support Engineer",
+    "Database Support Engineer",
+    "NOC Technician",
+    "IT Operations Manager",
+    
+    # ==================== MANAGEMENT & LEADERSHIP ====================
+    "Engineering Manager",
+    "Development Manager",
+    "Technical Lead",
+    "Team Lead",
+    "CTO (Chief Technology Officer)",
+    "VP of Engineering",
+    "Head of Engineering",
+    "Director of Engineering",
+    "IT Manager",
+    "IT Director",
+    "CIO (Chief Information Officer)",
+    
+    # ==================== CONSULTING ====================
+    "Technical Consultant",
+    "IT Consultant",
+    "Software Consultant",
+    "Cloud Consultant",
+    "Security Consultant",
+    "Digital Transformation Consultant",
+    
+    # ==================== ACADEMIC & RESEARCH ====================
+    "Research Engineer",
+    "Academic Researcher",
+    "Computer Science Instructor",
+    "Technical Trainer",
+    "Curriculum Developer",
+    
+    # ==================== CONTENT & TECHNICAL WRITING ====================
+    "Technical Writer",
+    "Documentation Engineer",
+    "API Documentation Writer",
+    "Developer Advocate",
+    "Developer Relations Engineer",
+    "Community Manager",
+    "Technical Content Writer",
+    
+    # ==================== SPECIALIZED ROLES ====================
+    "GIS Developer",
+    "Bioinformatics Engineer",
+    "Quantitative Developer",
+    "Algorithm Engineer",
+    "High-Frequency Trading Developer",
+    "Graphics Programmer",
+    "Shader Programmer",
+    "Audio Programmer",
+    "Tools Developer",
+    "Compiler Engineer",
+    "Kernel Developer",
+    "Firmware Developer",
+    
+    # ==================== LOW-CODE/NO-CODE ====================
+    "Power Platform Developer",
+    "Power Apps Developer",
+    "Power BI Developer",
+    "Low-Code Developer",
+    "RPA Developer",
+    "Automation Engineer",
+    
+    # ==================== PLATFORM SPECIFIC ====================
+    "SharePoint Developer",
+    "ServiceNow Developer",
+    "Oracle Developer",
+    "SAP ABAP Developer",
+    "Mainframe Developer",
+    "COBOL Developer",
+    
+    # ==================== FRAMEWORK SPECIALISTS ====================
+    "React Developer",
+    "Vue.js Developer",
+    "Angular Developer",
+    "Node.js Developer",
+    "Django Developer",
+    "Flask Developer",
+    "Spring Boot Developer",
+    ".NET Developer",
+    "Laravel Developer",
+    "Ruby on Rails Developer"]
+
+# scrape_multiple_roles.py - FOCUSED VERSION
+
+PRIORITY_ROLES = [
+    # Backend (High Demand)
+    "Python Developer",
+    "Django Developer",
+    "Node.js Developer",
+    "Java Developer",
+    "PHP Developer",
+    "Laravel Developer",
+    ".NET Developer",
+    
+    # Frontend (High Demand)
+    "React Developer",
+    "Vue.js Developer",
+    "Angular Developer",
+    "Frontend Developer",
+    "JavaScript Developer",
+    
+    # Full Stack
+    "Full Stack Developer",
+    "MERN Stack Developer",
+    
+    # Data (Growing Field)
+    "Data Engineer",
+    "Data Scientist",
+    "Data Analyst",
+    "Machine Learning Engineer",
+    
+    # DevOps/Cloud (High Paying)
+    "DevOps Engineer",
+    "Cloud Engineer",
+    "AWS Solutions Architect",
+    
+    # Mobile (Popular)
+    "Android Developer",
+    "iOS Developer",
+    "Flutter Developer",
+    "React Native Developer",
+    
+    # Other Key Roles
+    "Software Engineer",
+    "Backend Developer",
+    "QA Engineer",
+]
+
+roles = sorted(PRIORITY_ROLES)
+one_role = rd.choice(roles)

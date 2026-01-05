@@ -1,0 +1,240 @@
+=================================
+STEP 1: DESIGNING THE JOBS TABLE
+=================================
+
+Q1: What information do we need to store about EACH job?
+
+1.Total Positions
+2.Job Shift
+3.Job Type
+4.Job Location
+5.Gender
+6.Minimum Experience
+7.Apply Before
+8.Posting Date 
+9.Job title
+10.Company name
+11.Min Salary
+12.Max Salary
+13.Platform
+14.Benifits
+15.Application Link
+16.Description
+17.Requirements
+
+Q2: Which of these should be in the jobs table vs separate tables?
+----
+
+Item                    | In jobs table? | Separate table? | Why?
+------------------------|----------------|-----------------|-------
+Job title               |       yes      |                 |Cuz thats what this table is about and all the info related to job title is already present in jobs title
+Company                 |                |      yes        |Because One company can have many job listings and it will be easier to track them and analyze them if they are in seperate table
+Location                |                |      yes        |locations (location_id, city, country) jobs (existing) job_locations (job_id, location_id) <- junction
+Salary                  |       yes      |                 |Because It does not need a table of its own and will cause conflict between different type of jobs
+Skills required         |                |      yes        |Skills need 3 tables:- skills (skill_id, skill_name) - jobs (existing) - job_skills (job_id, skill_id) <- junction
+Job type                |       yes      |                 |Because its not Something that needs definiton on its own
+Posting Date            |       yes      |                 |Same as job type
+Min Experience          |       yes      |                 |Also same as job type
+Platform                |                |      yes        |If one job can be on multiple platforms -> many-to-many Need: platforms, jobs, job_platforms (junction)
+
+Q3: How do we identify each job uniquely?
+----
+Option A: Auto-incrementing ID (1, 2, 3, 4...)
+Option B: UUID (random unique identifier)
+
+Which do you choose? : random unique identifier
+
+Why? 
+Because we will scrape a thousand jobs and giving each job a serial number does not make sense and is not scalable
+
+
+Q4: What about jobs that appear on multiple sites?
+----
+Scenario: Same job appears on LinkedIn AND Rozee.pk
+
+Do we:
+[ ] Store it twice (2 separate records)
+[ ] Store it once with multiple sources
+[ ] Something else?
+
+Your decision: Store once, track platforms => cleaner data
+This system needs cleaner data because its not just a job board we need to analyze and process data to find out trends and
+it also prevents redundance and will help the Ai agent to understand better
+
+Detection: Compare title + company_id + salary range
+If match within 5% => same job and just add to job_platforms
+
+Q5: How do we track if a job is still active?
+----
+A job gets posted today, might be closed next week.
+
+How do we know?
+Option A: is_active boolean (true/false)
+Option B: closed_date timestamp (NULL if still open)
+Option C: Both
+
+Your choice: A
+Why: It shows clarity without complexity
+
+================================
+STEP 2: DESIGNING OTHER TABLES
+================================
+
+TABLE 1: COMPANIES
+------------------
+Purpose: Store unique companies that post jobs
+
+Columns I need:
+- company_id: UUID (PK)
+- name: TEXT (UNIQUE)
+- industry: TEXT (e.g., "Technology", "Finance", "Healthcare")
+- size: TEXT (e.g., "1-10", "11-50", "51-200", "201-500", "500+")
+- location: TEXT (headquarters location)
+- website: TEXT
+- created_at: TIMESTAMP
+- updated_at: TIMESTAMP
+
+Questions:
+Q: Do I need all these fields for MVP?
+Decision: Yes and its not just an MVP we're building a production grade system
+
+Q: Should industry be separate table or TEXT?
+Decision: seperate ->, for analytics Purpose and market trends
+
+TABLE 2: SKILLS
+---------------
+Purpose: Master list of all skills
+
+Columns I need:
+- skill_id: UUID (PK)
+- skill_name: TEXT (UNIQUE) (e.g., "Python", "React", "Docker")
+- category: TEXT (e.g., "backend", "frontend", "devops", "data")
+- created_at: TIMESTAMP  <= I don't think we need this
+
+Questions:
+Q: Should category be separate table?
+Decision: Yes as we cannot add a new category if there is no skill in that category right now because it will cause dependency which is bad for Normalizatio
+
+Q: How do I handle skill aliases? (JavaScript = JS = javascript)
+Options:
+  A) Store all variations ("JavaScript", "JS", "javascript")
+  B) Normalize during extraction (always store as "JavaScript")
+  C) Add aliases table
+Decision: B, Because its the most effecient way and makes much more sense 
+
+
+TABLE 3: PLATFORMS
+------------------
+Purpose: Track which job boards we scrape from
+
+Columns I need:
+- platform_id: UUID (PK)
+- platform_name: TEXT (UNIQUE) (e.g., "rozee", "linkedin", "indeed")
+- base_url: TEXT (e.g., "https://rozee.pk")
+- is_active: BOOLEAN (are we currently scraping this platform?)
+- created_at: TIMESTAMP
+
+Questions:
+Q: Do I need is_active field?
+Decision: No because we are scraping fixed amount of top level websites
+
+
+TABLE 4: LOCATIONS
+------------------
+Purpose: Track cities/countries
+
+Columns I need:
+- location_id: UUID (PK)
+- city: TEXT (e.g., "Karachi")
+- country: TEXT (e.g., "Pakistan")
+- created_at: TIMESTAMP
+
+OR should I make it simpler?
+- location_id: UUID (PK)
+- location_name: TEXT (e.g., "Karachi, Pakistan")
+
+Questions:
+Q: Separate city/country or combined?
+Decision: Seperate as it will help us understand which job is in which country because manually doing it is a pain in the ass but are we making it too complex at this point?
+
+
+TABLE 5: JOB_SKILLS (Junction)
+-------------------------------
+Purpose: Link jobs to skills (many-to-many)
+
+Columns I need:
+- job_id: UUID (FK -> jobs.job_id)
+- skill_id: UUID (FK -> skills.skill_id)
+- is_required: BOOLEAN (required vs nice-to-have?)
+- experience_level: TEXT (e.g., "2+ years", "Expert", NULL)
+- PRIMARY KEY (job_id, skill_id)
+
+Questions:
+Q: Do I need is_required and experience_level for MVP?
+Decision: Yeah we need it but experience_level will be as 1, 2, 0.6, 3 means in years not in phrases and is required will be again helpful in analyzing trends
+
+
+TABLE 6: JOB_PLATFORMS (Junction)
+----------------------------------
+Purpose: Link jobs to platforms (many-to-many)
+
+Columns I need:
+- job_id: UUID (FK -> jobs.job_id)
+- platform_id: UUID (FK -> platforms.platform_id)
+- source_url: TEXT (link to original job posting)
+- scraped_date: TIMESTAMP (when we found it)
+- PRIMARY KEY (job_id, platform_id)
+
+Questions:
+Q: Any other fields needed?
+Decision: This looks complete
+
+
+TABLE 7: JOB_LOCATIONS (Junction)
+----------------------------------
+Purpose: Link jobs to locations (many-to-many)
+
+Columns I need:
+- job_id: UUID (FK -> jobs.job_id)
+- location_id: UUID (FK -> locations.location_id)
+- PRIMARY KEY (job_id, location_id)
+
+Questions:
+Q: Any other fields needed?
+Decision: this looks complete
+
+
+SUMMARY: TABLES NEEDED FOR MVP
+-------------------------------
+List all tables:
+1. jobs
+2. companies
+3. skills
+4. platforms
+5. locations
+6. job_skills (junction)
+7. job_platforms (junction)
+8. job_locations (junction)
+
+Total: 8 tables
+
+Do I need any other tables for MVP?
+Decision: Trending(job and skill)? Should we think about it?
+
+
+INDEXES NEEDED
+--------------
+For fast queries, which columns should be indexed?
+
+jobs table:
+- [ ] jobs.company_id (for "all jobs from company X")
+- [ ] jobs.posted_date (for "jobs this month")
+- [ ] jobs.is_active (for "active jobs only")
+- [ ] jobs.salary_min, jobs.salary_max (for salary range queries)
+
+job_skills table:
+- [ ] job_skills.skill_id (for "all jobs needing skill X")
+- [ ] job_skills.job_id (for "all skills for job Y")
+
+Other indexes needed:
+I need an explanation on this
