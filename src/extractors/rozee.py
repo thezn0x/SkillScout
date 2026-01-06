@@ -33,7 +33,7 @@ class RozeeExtractor(Extractor):
                 if len(links) > 1:
                     parts = [self.clean_text(link.inner_text()) for link in links[1:] if self.clean_text(link.inner_text())]
                     if parts:
-                        location = ", ".join(parts) + ", Pakistan"
+                        location = ", ".join(parts)
             job["location"]=location
             # GET DESCRIPTION
             desc_element = card.query_selector("div.jbody")
