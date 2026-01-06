@@ -1,0 +1,9 @@
+[extractors]
+
+[extractors.careerjet]
+enabled = true
+max_pages = 2
+
+[extractors.rozee]
+enabled = true
+max_pages = 2
