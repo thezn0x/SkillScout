@@ -1,0 +1,134 @@
+SOFT_SKILLS_KEYWORDS = {
+    # Communication
+    "communication",
+    "communication skills",
+    "presentation",
+    "presentation skills",
+    "stakeholder communication",
+    "client communication",
+    "verbal communication",
+    "written communication",
+    
+    # Teamwork & Collaboration (very common)
+    "teamwork",
+    "team collaboration",
+    "collaborative teamwork",
+    "team player",
+    "cross team collaboration",
+    "cross functional",
+    "collaboration",
+    "collaborative",
+    
+    # Problem Solving (appears often)
+    "problem solving",
+    "problem-solving",
+    "troubleshooting",
+    "debugging",
+    "debugging skills",
+    
+    # Analytical & Thinking
+    "analytical thinking",
+    "critical thinking",
+    "analytical skills",
+    "analytical",
+    
+    # Leadership & Mentoring
+    "leadership",
+    "leadership skills",
+    "mentoring",
+    "mentoring abilities",
+    "coaching",
+    "delegation",
+    "delegation skills",
+    "knowledge sharing",
+    
+    # Work Attributes
+    "detail oriented",
+    "detail-oriented",
+    "attention to detail",
+    "self motivated",
+    "self-motivated",
+    "initiative",
+    "proactive",
+    "accountability",
+    "professionalism",
+    "work ethic",
+    "creativity",
+    "patience",
+    "resilience",
+    
+    # Time & Organization
+    "time management",
+    "organization",
+    "organizational skills",
+    "estimation",
+    "estimation skills",
+    
+    # Agile & Process (borderline - often soft)
+    "agile",
+    "agile methodology",
+    "agile methodologies",
+    "agile development",
+    "scrum",
+    "kanban",
+    "agile practices",
+    "project management",
+    "project management software",
+    "project coordination",
+    
+    # Code Review & Quality (soft when generic)
+    "code review",
+    "code reviews",
+    "quality focus",
+    "process improvement",
+    
+    # Documentation (soft when generic)
+    "documentation",
+    "documentation skills",
+    "technical documentation",
+    "technical writing",
+    
+    # Design Thinking (soft)
+    "ui/ux principles",
+    "ui ux principles",
+    "ux design tools",
+    "design thinking",
+    
+    # Business & Requirements
+    "business acumen",
+    "requirements gathering",
+    "stakeholder management",
+    "client management",
+    
+    # Learning & Growth
+    "continuous learning",
+    "knowledge of latest trends",
+    "training",
+    "training/mentoring",
+    
+    # Risk & Security Awareness (when mentioned as awareness/mindset)
+    "security awareness",
+    "risk management",
+    "performance optimization mindset",
+    
+    # Git Workflows (borderline but often taught as process)
+    "git workflows",
+    
+    # Other
+    "vendor management",
+    "cross-browser compatibility",
+    "communication",
+    "presentation", 
+    "collaboration",
+    "teamwork",
+    "problem solving",
+    "problem-solving",
+    "leadership",
+    "mentoring",
+    "agile",
+    "scrum",
+    "code review",
+    "documentation",
+    "ui/ux principle",
+    "ux design",
+}

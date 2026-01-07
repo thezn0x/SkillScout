@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 from src.utils.logger import get_logger
+from .soft_skills import SOFT_SKILLS_KEYWORDS
 
 # LOGGER
 logger = get_logger(__name__)
@@ -47,8 +48,13 @@ class Cleaner:
             cleaned_job["max_salary"] = None
         
         # CLEAN SKILLS
-        cleaned_job["skills"] = job.get("skills", [])
-        
+        raw_skills = job.get("skills", [])
+        for skill in raw_skills:
+            if skill in SOFT_SKILLS_KEYWORDS:
+                cleaned_job["soft_skills"].append(skill.lower())
+            else:
+                cleaned_job["skills"].append(skill.lower())
+
         # SOURCE
         cleaned_job["source"] = job.get("source", "unknown")
         
