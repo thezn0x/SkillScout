@@ -1,4 +1,8 @@
 from typing import List, Dict, Any
+from src.utils.logger import get_logger
+
+# LOGGER
+logger = get_logger(__name__)
 
 class Cleaner:
     def clean_job(self, job: Dict[str, Any]) -> Dict[str, Any]:
@@ -35,6 +39,7 @@ class Cleaner:
                     cleaned_job["min_salary"] = int(min_sal)
                     cleaned_job["max_salary"] = int(max_sal)
             except Exception:
+                logger.warning(f"Could not perform {__name__}, setting min_salary and max_salary to 'None'")
                 cleaned_job["min_salary"] = None
                 cleaned_job["max_salary"] = None
         else:
@@ -50,4 +55,5 @@ class Cleaner:
         return cleaned_job
 
     def clean_jobs(self, jobs: List) -> List[Dict[str, Any]]:
-        return [self.clean_job(j) for j in jobs]  # Fixed!
+        logger.info("Starting clean_jobs()...")
+        return [self.clean_job(j) for j in jobs]
