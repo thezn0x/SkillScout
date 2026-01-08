@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
 from src.utils.logger import get_logger
 from .soft_skills import SOFT_SKILLS_KEYWORDS
+import json
 
 # LOGGER
 logger = get_logger(__name__)
@@ -48,9 +49,11 @@ class Cleaner:
             cleaned_job["max_salary"] = None
         
         # CLEAN SKILLS
+        cleaned_job["soft_skills"] = []
+        cleaned_job["skills"] = []
         raw_skills = job.get("skills", [])
         for skill in raw_skills:
-            if skill in SOFT_SKILLS_KEYWORDS:
+            if skill.lower() in SOFT_SKILLS_KEYWORDS:
                 cleaned_job["soft_skills"].append(skill.lower())
             else:
                 cleaned_job["skills"].append(skill.lower())
@@ -63,3 +66,14 @@ class Cleaner:
     def clean_jobs(self, jobs: List) -> List[Dict[str, Any]]:
         logger.info("Starting clean_jobs()...")
         return [self.clean_job(j) for j in jobs]
+    
+    @staticmethod
+    def save_jobs(filename: str, jobs: List[Dict]) -> None:
+        try:
+            logger.info("Saving jobs...")
+            with open(filename, "w") as f:
+                json.dump(jobs, f, indent=2, ensure_ascii=False)
+            return True
+        except Exception:
+            logger.error("Error while performing operation: %s",__name__)
+            return False
