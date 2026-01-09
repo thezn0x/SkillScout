@@ -2,6 +2,10 @@ from typing import List, Dict, Any
 from src.utils.logger import get_logger
 from .soft_skills import SOFT_SKILLS_KEYWORDS
 import json
+import os
+
+OUTPUT_DIR = "data/curated"
+os.makedirs(OUTPUT_DIR,exist_ok=True)
 
 # LOGGER
 logger = get_logger(__name__)
