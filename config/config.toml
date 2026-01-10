@@ -3,7 +3,11 @@
 [extractors.careerjet]
 enabled = true
 max_pages = 2
+base_url = 'https://www.careerjet.com.pk/jobs?l=Pakistan&nw=1&s='
+date_pattern = '\d+\s+(?:second|minute|hour|day|week|month|year)s?\s+ago'
 
 [extractors.rozee]
 enabled = true
 max_pages = 2
+base_url = 'https://www.rozee.pk/job/jsearch/q/'
+date_pattern = ''

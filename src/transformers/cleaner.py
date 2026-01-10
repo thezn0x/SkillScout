@@ -5,6 +5,11 @@ import json
 import os
 from datetime import datetime, timedelta
 import re
+from config.settings import EXTRACTORS
+
+rozee_cfg = EXTRACTORS["rozee"]
+careerjet_cfg = EXTRACTORS["careerjet"]
+
 
 # OUTPUT DIRECTORY
 OUTPUT_DIR = "data/curated"
@@ -30,7 +35,7 @@ class Cleaner:
             cleaned_job["posted_date"] = None
             rel_date = job["posted_date"]
             scraped_date = job["scraped_at"]
-            pattern = r"\d+\s+(?:second|minute|hour|day|week|month|year)s?\s+ago"
+            pattern = careerjet_cfg["date_pattern"] if self.extractor_name == 'careerjet' else rozee_cfg["date_pattern"]
             date = datetime.fromisoformat(scraped_date)
             find_pattern = re.search(pattern=pattern,flags=re.I,string=rel_date)
             if find_pattern:

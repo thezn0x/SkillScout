@@ -19,7 +19,7 @@ def main():
         if rozee_cfg["enabled"]:
             logger.info("Starting Rozee.pk scraper...")
             rozee_extractor = RozeeExtractor(
-                base_url="https://www.rozee.pk/job/jsearch/q/",
+                base_url=rozee_cfg["base_url"],
                 card="div.job"
             )
             rozee_jobs = rozee_extractor.fetch_jobs(rozee_cfg["max_pages"])
@@ -27,7 +27,7 @@ def main():
         if careerjet_cfg["enabled"]:
             logger.info("Starting CareerJet.pk scraper...")
             careerjet_extractor = CareerjetExtractor(
-                base_url="https://www.careerjet.com.pk/jobs?l=Pakistan&nw=1&s=",
+                base_url= careerjet_cfg["base_url"],
                 card="ul.jobs li article.job"
             )
             careerjet_jobs = careerjet_extractor.fetch_jobs(careerjet_cfg["max_pages"])
