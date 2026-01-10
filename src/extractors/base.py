@@ -46,5 +46,5 @@ class Extractor:
                 json.dump(jobs, f, indent=2, ensure_ascii=False)
             return True
         except Exception:
-            logger.error("Error while performing operation: %s",__name__)
+            logger.exception("Error while performing operation: %s",__name__)
             return False

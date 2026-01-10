@@ -3,7 +3,10 @@ from src.utils.logger import get_logger
 from .soft_skills import SOFT_SKILLS_KEYWORDS
 import json
 import os
+from datetime import datetime, timedelta
+import re
 
+# OUTPUT DIRECTORY
 OUTPUT_DIR = "data/curated"
 os.makedirs(OUTPUT_DIR,exist_ok=True)
 
@@ -11,6 +14,9 @@ os.makedirs(OUTPUT_DIR,exist_ok=True)
 logger = get_logger(__name__)
 
 class Cleaner:
+    def __init__(self,extractor_name: str):
+        self.extractor_name = extractor_name
+
     def clean_job(self, job: Dict[str, Any]) -> Dict[str, Any]:
         cleaned_job = {}
 
@@ -19,6 +25,43 @@ class Cleaner:
             if text:
                 return text.strip()
             return ""
+        if self.extractor_name == 'careerjet':
+            # CLEAN TIME: Only for careerjet for now
+            cleaned_job["posted_date"] = None
+            rel_date = job["posted_date"]
+            scraped_date = job["scraped_at"]
+            pattern = r"\d+\s+(?:second|minute|hour|day|week|month|year)s?\s+ago"
+            date = datetime.fromisoformat(scraped_date)
+            find_pattern = re.search(pattern=pattern,flags=re.I,string=rel_date)
+            if find_pattern:
+                rel_date_list = find_pattern.group().split(" ")
+                try:
+                    time_to_minus = int(rel_date_list[0])
+                    type_of_time = rel_date_list[1]
+                    match type_of_time:
+                        case 'hour' | 'hours':
+                            actual_posted_date = date - timedelta(hours=time_to_minus)
+                        case 'day' | 'days':
+                            actual_posted_date = date - timedelta(days=time_to_minus)
+                        case 'week' | 'weeks':
+                            actual_posted_date = date - timedelta(weeks=time_to_minus)
+                        case 'month' | 'months':
+                            if time_to_minus > 1:
+                                actual_posted_date = None
+                            else:
+                                actual_posted_date = date - timedelta(days=time_to_minus*30)
+                        case 'year' | 'years':
+                            actual_posted_date = None
+                        case _:
+                            actual_posted_date = None
+                    cleaned_job["posted_date"] = actual_posted_date
+                except Exception:
+                    cleaned_job["posted_date"] = None
+
+        # EDGE-CASE: If job is older than 1 month then it will be truncated: BETA
+        # if cleaned_job["posted_date"] is None:
+        #     return None
+                cleaned_job["posted_date"] = job["posted_date"]
 
         # CLEAN BASIC FIELDS FOR SAFETY
         cleaned_job["title"] = _clean_text(job.get("title", ""))
@@ -61,10 +104,10 @@ class Cleaner:
                 cleaned_job["soft_skills"].append(skill.lower())
             else:
                 cleaned_job["skills"].append(skill.lower())
-
+                
         # SOURCE
         cleaned_job["source"] = job.get("source", "unknown")
-        
+
         return cleaned_job
 
     def clean_jobs(self, jobs: List) -> List[Dict[str, Any]]:
@@ -75,9 +118,10 @@ class Cleaner:
     def save_jobs(filename: str, jobs: List[Dict]) -> None:
         try:
             logger.info("Saving jobs...")
+            # EDGE-CASE: If job is None then remove it
             with open(filename, "w") as f:
                 json.dump(jobs, f, indent=2, ensure_ascii=False)
             return True
         except Exception:
-            logger.error("Error while performing operation: %s",__name__)
+            logger.exception("Error while performing operation: %s",__name__)
             return False
