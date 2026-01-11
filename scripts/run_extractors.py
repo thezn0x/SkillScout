@@ -20,7 +20,7 @@ def main():
             logger.info("Starting Rozee.pk scraper...")
             rozee_extractor = RozeeExtractor(
                 base_url=rozee_cfg["base_url"],
-                card="div.job"
+                card=rozee_cfg["card"]
             )
             rozee_jobs = rozee_extractor.fetch_jobs(rozee_cfg["max_pages"])
 
@@ -28,7 +28,7 @@ def main():
             logger.info("Starting CareerJet.pk scraper...")
             careerjet_extractor = CareerjetExtractor(
                 base_url= careerjet_cfg["base_url"],
-                card="ul.jobs li article.job"
+                card=careerjet_cfg["card"]
             )
             careerjet_jobs = careerjet_extractor.fetch_jobs(careerjet_cfg["max_pages"])
 
@@ -37,12 +37,12 @@ def main():
         return False
 
     if rozee_jobs and rozee_extractor:
-        rozee_extractor.save_jobs("data/raw/rozee.json", rozee_jobs)
-        logger.info("Saved rozee_jobs to data/raw/rozee.json")
+        rozee_extractor.save_jobs(rozee_cfg["output_file"], rozee_jobs)
+        logger.info(f"Saved rozee_jobs to {rozee_cfg['output_file']}")
 
     if careerjet_jobs and careerjet_extractor:
-        careerjet_extractor.save_jobs("data/raw/careerjet.json", careerjet_jobs)
-        logger.info("Saved careerjet_jobs to data/raw/careerjet.json")
+        careerjet_extractor.save_jobs(careerjet_cfg['output_file'], careerjet_jobs)
+        logger.info(f"Saved careerjet_jobs to {careerjet_cfg['output_file']}")
 
     return True
 

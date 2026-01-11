@@ -5,14 +5,14 @@ import json
 import os
 from datetime import datetime, timedelta
 import re
-from config.settings import EXTRACTORS
+from config.settings import TRANSFORMERS
 
-rozee_cfg = EXTRACTORS["rozee"]
-careerjet_cfg = EXTRACTORS["careerjet"]
+rozee_cfg = TRANSFORMERS["rozee"]
+careerjet_cfg = TRANSFORMERS["careerjet"]
 
 
 # OUTPUT DIRECTORY
-OUTPUT_DIR = "data/curated"
+OUTPUT_DIR = TRANSFORMERS["output_dir"]
 os.makedirs(OUTPUT_DIR,exist_ok=True)
 
 # LOGGER
@@ -59,21 +59,20 @@ class Cleaner:
                             actual_posted_date = None
                         case _:
                             actual_posted_date = None
-                    cleaned_job["posted_date"] = actual_posted_date
+                    cleaned_job["posted_date"] = str(actual_posted_date)
                 except Exception:
                     cleaned_job["posted_date"] = None
 
         # EDGE-CASE: If job is older than 1 month then it will be truncated: BETA
         # if cleaned_job["posted_date"] is None:
         #     return None
-                cleaned_job["posted_date"] = job["posted_date"]
+                # cleaned_job["posted_date"] = job["posted_date"]
 
         # CLEAN BASIC FIELDS FOR SAFETY
         cleaned_job["title"] = _clean_text(job.get("title", ""))
         cleaned_job["url"] = _clean_text(job.get("url", ""))
         cleaned_job["location"] = _clean_text(job.get("location", ""))
         cleaned_job["description"] = _clean_text(job.get("description", ""))
-        cleaned_job["posted_date"] = _clean_text(job.get("posted_date", ""))
         cleaned_job["company"] = _clean_text(job.get("company", ""))
         
         # CLEAN SALARY
