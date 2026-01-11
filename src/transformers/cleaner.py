@@ -5,14 +5,14 @@ import json
 import os
 from datetime import datetime, timedelta
 import re
-from config.settings import EXTRACTORS
+from config.settings import TRANSFORMERS
 
-rozee_cfg = EXTRACTORS["rozee"]
-careerjet_cfg = EXTRACTORS["careerjet"]
+rozee_cfg = TRANSFORMERS["rozee"]
+careerjet_cfg = TRANSFORMERS["careerjet"]
 
 
 # OUTPUT DIRECTORY
-OUTPUT_DIR = "data/curated"
+OUTPUT_DIR = TRANSFORMERS["output_dir"]
 os.makedirs(OUTPUT_DIR,exist_ok=True)
 
 # LOGGER

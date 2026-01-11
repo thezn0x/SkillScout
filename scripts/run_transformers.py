@@ -1,31 +1,57 @@
 from src.transformers.cleaner import Cleaner
-import json 
 from src.utils.logger import get_logger
+from config.settings import TRANSFORMERS
+
+rozee_config = TRANSFORMERS["rozee"]
+careerjet_config = TRANSFORMERS["careerjet"]
 
 logger = get_logger(__name__)
 
+# Map transformer names to their classes for scalability
+# If you want to add a transformer, just import it and add to the map and also add its config in config/config.toml
+TRANSFORMER_MAP = {
+    "rozee": Cleaner,
+    "careerjet": Cleaner,
+}
+
 def main():
     try:
-        careerjet_cleaner = Cleaner(extractor_name='careerjet')
-        with open("data/raw/careerjet.json") as f:
-            careerjet_job_data = json.load(f)
-        cleaned_careerjet_jobs = careerjet_cleaner.clean_jobs(careerjet_job_data)
+        for name, config in TRANSFORMERS.items():
+            overall_success = True
+            # Skip items that are not transformer configurations
+            if not isinstance(config, dict):
+                continue
 
-        rozee_cleaner = Cleaner(extractor_name='rozee')
-        with open("data/raw/rozee.json") as f:
-            rozee_job_data = json.load(f)
-        cleaned_rozee_jobs = rozee_cleaner.clean_jobs(rozee_job_data)
+            if not config.get("enabled", False):
+                continue
 
-        if cleaned_careerjet_jobs:
-            careerjet_cleaner.save_jobs("data/curated/cleaned_careerjet.json",cleaned_careerjet_jobs)
+            try:
+                logger.info(f"Starting {name} transformer...")
+                transformer_class = TRANSFORMER_MAP.get(name)
+                if not transformer_class:
+                    logger.warning(f"No transformer class found for '{name}'. Skipping.")
+                    continue
+                transformer = transformer_class(base_url=config["base_url"],card=config["card"])
+                jobs = transformer.fetch_jobs(max_pages=config["max_pages"])
+                if jobs:
+                    file_path = config["file_path"]
+                    transformer.save_jobs(file_path, jobs)
+                    logger.info(f"Saved {len(jobs)} jobs from {name} to {file_path}")
+                else:
+                    logger.info(f"No jobs found for {name}.")
 
-        if cleaned_rozee_jobs:
-            rozee_cleaner.save_jobs("data/curated/cleaned_rozee.json",cleaned_rozee_jobs)
-        return True
-
+            except Exception:
+                logger.exception(f"Fatal error in '{name}' transformer")
+                return False                      
     except Exception:
         logger.exception("Error while performing %s",__name__)
         return False
+        overall_success = False
+    return overall_success
+
 
 if __name__ == "__main__":
-    main()
+    if main():
+        logger.info("All transformers finished successfully.")
+    else:
+        logger.error("One or more transformers failed.")

@@ -5,47 +5,58 @@ from config.settings import EXTRACTORS
 
 logger = get_logger(__name__)
 
-rozee_cfg = EXTRACTORS["rozee"]
-careerjet_cfg = EXTRACTORS["careerjet"]
+# Map extractor names to their classes for scalability
+# If you want to add an extractor just import it and add to the map and also add its config in config/config.toml
+EXTRACTOR_MAP = {
+    "rozee": RozeeExtractor,
+    "careerjet": CareerjetExtractor,
+}
 
 def main():
-    rozee_jobs = []
-    careerjet_jobs = []
+    """
+    Runs all enabled extractors based on the configuration.
+    Each extractor runs independently.
+    """
+    overall_success = True
+    for name, config in EXTRACTORS.items():
+        # Skip items that are not extractor configurations
+        if not isinstance(config, dict):
+            continue
 
-    rozee_extractor = None
-    careerjet_extractor = None
+        if not config.get("enabled", False):
+            continue
 
-    try:
-        if rozee_cfg["enabled"]:
-            logger.info("Starting Rozee.pk scraper...")
-            rozee_extractor = RozeeExtractor(
-                base_url=rozee_cfg["base_url"],
-                card="div.job"
+        try:
+            logger.info(f"Starting {name} scraper...")
+            extractor_class = EXTRACTOR_MAP.get(name)
+
+            if not extractor_class:
+                logger.warning(f"No extractor class found for '{name}'. Skipping.")
+                continue
+
+            extractor = extractor_class(
+                base_url=config["base_url"],
+                card=config["card"]
             )
-            rozee_jobs = rozee_extractor.fetch_jobs(rozee_cfg["max_pages"])
+            jobs = extractor.fetch_jobs(config["max_pages"])
 
-        if careerjet_cfg["enabled"]:
-            logger.info("Starting CareerJet.pk scraper...")
-            careerjet_extractor = CareerjetExtractor(
-                base_url= careerjet_cfg["base_url"],
-                card="ul.jobs li article.job"
-            )
-            careerjet_jobs = careerjet_extractor.fetch_jobs(careerjet_cfg["max_pages"])
+            if jobs:
+                file_path = config["file_path"]
+                extractor.save_jobs(file_path, jobs)
+                logger.info(f"Saved {len(jobs)} jobs from {name} to {file_path}")
+            else:
+                logger.info(f"No jobs found for {name}.")
 
-    except Exception:
-        logger.exception("Fatal error in run_extractors")
-        return False
+        except Exception:
+            logger.exception(f"Fatal error in '{name}' extractor")
+            overall_success = False
+            # Continue to the next extractor
 
-    if rozee_jobs and rozee_extractor:
-        rozee_extractor.save_jobs("data/raw/rozee.json", rozee_jobs)
-        logger.info("Saved rozee_jobs to data/raw/rozee.json")
-
-    if careerjet_jobs and careerjet_extractor:
-        careerjet_extractor.save_jobs("data/raw/careerjet.json", careerjet_jobs)
-        logger.info("Saved careerjet_jobs to data/raw/careerjet.json")
-
-    return True
+    return overall_success
 
 
 if __name__ == "__main__":
-    main()
+    if main():
+        logger.info("All extractors finished successfully.")
+    else:
+        logger.error("One or more extractors failed.")
