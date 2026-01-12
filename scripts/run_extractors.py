@@ -37,12 +37,12 @@ def main():
         return False
 
     if rozee_jobs and rozee_extractor:
-        rozee_extractor.save_jobs(rozee_cfg["output_file"], rozee_jobs)
-        logger.info(f"Saved rozee_jobs to {rozee_cfg['output_file']}")
+        rozee_extractor.save_jobs(rozee_cfg["output_path"], rozee_jobs)
+        logger.info(f"Saved rozee_jobs to {rozee_cfg['output_path']}")
 
     if careerjet_jobs and careerjet_extractor:
-        careerjet_extractor.save_jobs(careerjet_cfg['output_file'], careerjet_jobs)
-        logger.info(f"Saved careerjet_jobs to {careerjet_cfg['output_file']}")
+        careerjet_extractor.save_jobs(careerjet_cfg['output_path'], careerjet_jobs)
+        logger.info(f"Saved careerjet_jobs to {careerjet_cfg['output_path']}")
 
     return True
 

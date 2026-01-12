@@ -22,6 +22,48 @@ class Cleaner:
     def __init__(self,extractor_name: str):
         self.extractor_name = extractor_name
 
+    @staticmethod
+    def _parse_date(date_str: str) -> str:
+            """Parse date to ISO format (YYYY-MM-DD)"""
+            if not date_str:
+                return None
+            
+            date_str = date_str.strip()
+            
+            # Already ISO
+            if re.match(r'\d{4}-\d{2}-\d{2}', date_str):
+                return date_str
+            
+            # "Jan 07, 2026" format
+            for fmt in ['%b %d, %Y', '%B %d, %Y']:
+                try:
+                    parsed = datetime.strptime(date_str, fmt)
+                    return parsed.strftime('%Y-%m-%d')
+                except ValueError:
+                    continue
+            
+            # "3 days ago" format
+            relative = re.search(r'(\d+)\s+(hour|day|week|month)s?\s+ago', 
+                            date_str, re.IGNORECASE)
+            if relative:
+                amount = int(relative.group(1))
+                unit = relative.group(2).lower()
+                
+                now = datetime.now()
+                if unit == 'hour':
+                    date = now - timedelta(hours=amount)
+                elif unit == 'day':
+                    date = now - timedelta(days=amount)
+                elif unit == 'week':
+                    date = now - timedelta(weeks=amount)
+                elif unit == 'month':
+                    date = now - timedelta(days=amount * 30)
+                
+                return date.strftime('%Y-%m-%d')
+            
+            # Fallback
+            return date_str
+    
     def clean_job(self, job: Dict[str, Any]) -> Dict[str, Any]:
         cleaned_job = {}
 
@@ -62,11 +104,13 @@ class Cleaner:
                     cleaned_job["posted_date"] = str(actual_posted_date)
                 except Exception:
                     cleaned_job["posted_date"] = None
+        elif self.extractor_name == 'rozee':
+            cleaned_job["posted_date"] = self._parse_date(job["posted_date"])
 
         # EDGE-CASE: If job is older than 1 month then it will be truncated: BETA
         # if cleaned_job["posted_date"] is None:
-        #     return None
-                # cleaned_job["posted_date"] = job["posted_date"]
+            # cleaned_job["posted_date"] = job["posted_date"]
+            #return None
 
         # CLEAN BASIC FIELDS FOR SAFETY
         cleaned_job["title"] = _clean_text(job.get("title", ""))
