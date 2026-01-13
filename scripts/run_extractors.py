@@ -14,7 +14,7 @@ def main():
     try:
         overall_success = True
         for name, config in EXTRACTORS.items():
-            if isinstance(config, dict):
+            if not isinstance(config, dict):
                 continue
             
             if not config.get("enabled", False):

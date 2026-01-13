@@ -22,15 +22,14 @@ class Cleaner:
     def __init__(self,extractor_name: str):
         self.extractor_name = extractor_name
 
+# Ony for rozee
     @staticmethod
-    def _parse_date(date_str: str) -> str:
-            """Parse date to ISO format (YYYY-MM-DD)"""
+    def rozee_parse_date(date_str: str) -> str:
             if not date_str:
                 return None
             
             date_str = date_str.strip()
             
-            # Already ISO
             if re.match(r'\d{4}-\d{2}-\d{2}', date_str):
                 return date_str
             
@@ -43,7 +42,7 @@ class Cleaner:
                     continue
             
             # "3 days ago" format
-            relative = re.search(r'(\d+)\s+(hour|day|week|month)s?\s+ago', 
+            relative = re.search(rozee_cfg["date_pattern"], 
                             date_str, re.IGNORECASE)
             if relative:
                 amount = int(relative.group(1))
@@ -64,6 +63,42 @@ class Cleaner:
             # Fallback
             return date_str
     
+    @staticmethod
+    def careerjet_parse_date(date_str: str, scraped_at: str) -> str:
+        if not date_str:
+            return None
+        rel_date = date_str.strip()
+        scraped_date = scraped_at.strip()
+        pattern = careerjet_cfg["date_pattern"]
+        date = datetime.fromisoformat(scraped_date)
+        find_pattern = re.search(pattern=pattern,flags=re.I,string=rel_date)
+        if find_pattern:
+            rel_date_list = find_pattern.group().split(" ")
+            try:
+                time_to_minus = int(rel_date_list[0])
+                type_of_time = rel_date_list[1]
+                match type_of_time:
+                    case 'hour' | 'hours':
+                        actual_posted_date = date - timedelta(hours=time_to_minus)
+                    case 'day' | 'days':
+                        actual_posted_date = date - timedelta(days=time_to_minus)
+                    case 'week' | 'weeks':
+                        actual_posted_date = date - timedelta(weeks=time_to_minus)
+                    case 'month' | 'months':
+                        if time_to_minus > 1:
+                            actual_posted_date = None
+                        else:
+                            actual_posted_date = date - timedelta(days=time_to_minus*30)
+                    case 'year' | 'years':
+                        actual_posted_date = None
+                    case _:
+                        actual_posted_date = None
+                cleaned_date = str(actual_posted_date)
+            except Exception:
+                cleaned_date = None
+
+            return cleaned_date
+    
     def clean_job(self, job: Dict[str, Any]) -> Dict[str, Any]:
         cleaned_job = {}
 
@@ -72,45 +107,17 @@ class Cleaner:
             if text:
                 return text.strip()
             return ""
+
+        # CLEAN DATE
         if self.extractor_name == 'careerjet':
-            # CLEAN TIME: Only for careerjet for now
-            cleaned_job["posted_date"] = None
-            rel_date = job["posted_date"]
-            scraped_date = job["scraped_at"]
-            pattern = careerjet_cfg["date_pattern"] if self.extractor_name == 'careerjet' else rozee_cfg["date_pattern"]
-            date = datetime.fromisoformat(scraped_date)
-            find_pattern = re.search(pattern=pattern,flags=re.I,string=rel_date)
-            if find_pattern:
-                rel_date_list = find_pattern.group().split(" ")
-                try:
-                    time_to_minus = int(rel_date_list[0])
-                    type_of_time = rel_date_list[1]
-                    match type_of_time:
-                        case 'hour' | 'hours':
-                            actual_posted_date = date - timedelta(hours=time_to_minus)
-                        case 'day' | 'days':
-                            actual_posted_date = date - timedelta(days=time_to_minus)
-                        case 'week' | 'weeks':
-                            actual_posted_date = date - timedelta(weeks=time_to_minus)
-                        case 'month' | 'months':
-                            if time_to_minus > 1:
-                                actual_posted_date = None
-                            else:
-                                actual_posted_date = date - timedelta(days=time_to_minus*30)
-                        case 'year' | 'years':
-                            actual_posted_date = None
-                        case _:
-                            actual_posted_date = None
-                    cleaned_job["posted_date"] = str(actual_posted_date)
-                except Exception:
-                    cleaned_job["posted_date"] = None
+            cleaned_job["posted_date"] = self.careerjet_parse_date(job["posted_date"], job["scraped_at"])
         elif self.extractor_name == 'rozee':
-            cleaned_job["posted_date"] = self._parse_date(job["posted_date"])
+            cleaned_job["posted_date"] = self.rozee_parse_date(job["posted_date"])
 
         # EDGE-CASE: If job is older than 1 month then it will be truncated: BETA
-        # if cleaned_job["posted_date"] is None:
-            # cleaned_job["posted_date"] = job["posted_date"]
-            #return None
+        if cleaned_job["posted_date"] is None:
+            cleaned_job["posted_date"] = job["posted_date"]
+            return None
 
         # CLEAN BASIC FIELDS FOR SAFETY
         cleaned_job["title"] = _clean_text(job.get("title", ""))

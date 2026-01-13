@@ -20,9 +20,6 @@ def main():
             if not isinstance(config, dict):
                 continue
 
-            if not config.get("enabled", False):
-                continue
-
             input_path = EXTRACTORS[name]["output_path"]
             if not Path(input_path).exists():
                 logger.warning(f"No data from {name} extractor")
