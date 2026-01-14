@@ -1,0 +1,111 @@
+from typing import Any, Dict, List
+from src.utils.logger import get_logger
+from .soft_skills import SOFT_SKILLS_KEYWORDS
+import json
+from abc import ABC, abstractmethod
+
+logger = get_logger(__name__)
+
+class BaseCleaner(ABC):
+    def __init__(self, extractor_name: str):
+        self.extractor_name = extractor_name
+
+    @staticmethod
+    def _clean_text(text: str) -> str:
+        if text:
+            return text.strip()
+        return ""
+
+    def clean_basic_fields(self, job: Dict[str, Any]) -> Dict[str, Any]:
+        cleaned_job = {}
+
+        cleaned_job["title"] = self._clean_text(job.get("title", ""))
+        cleaned_job["url"] = self._clean_text(job.get("url", ""))
+        cleaned_job["location"] = self._clean_text(job.get("location", ""))
+        cleaned_job["description"] = self._clean_text(job.get("description", ""))
+        cleaned_job["company"] = self._clean_text(job.get("company", ""))
+        cleaned_job["source"] = job.get("source", "unknown")
+        
+        # Copy other fields that don't need text cleaning
+        cleaned_job["posted_date"] = job.get("posted_date")
+        cleaned_job["salary"] = job.get("salary")
+        cleaned_job["experience_text"] = job.get("experience_text")
+        cleaned_job["experience_years"] = job.get("experience_years")
+        cleaned_job["skills"] = job.get("skills", [])
+        cleaned_job["scraped_at"] = job.get("scraped_at")
+
+        return cleaned_job
+
+    def clean_salary(self, salary_str: str) -> tuple:
+        if not salary_str:
+            return None, None
+            
+        try:
+            parts = salary_str.split("-")
+            if len(parts) != 2:
+                return None, None
+            
+            # Check if contains 'k' for thousands
+            has_k = 'k' in parts[0].lower() or 'k' in parts[1].lower()
+            
+            # Clean and parse
+            min_sal = parts[0].lower().replace("k", "").replace(",", "").strip()
+            max_sal = parts[1].lower().replace("k", "").replace(",", "").strip()
+            
+            min_salary = int(min_sal) * (1000 if has_k else 1)
+            max_salary = int(max_sal) * (1000 if has_k else 1)
+            
+            return min_salary, max_salary
+            
+        except Exception:
+            logger.warning(f"Could not parse salary: {salary_str}")
+            return None, None
+
+    def filter_skills(self, skills: List[str]) -> tuple:
+        if not skills:
+            return [], []
+        
+        soft_skills = []
+        core_skills = []
+        
+        for skill in skills:
+            skill_lower = skill.lower().strip()
+            if skill_lower in SOFT_SKILLS_KEYWORDS:
+                soft_skills.append(skill_lower)
+            else:
+                core_skills.append(skill)  # Keep original case for tech skills
+        
+        return soft_skills, core_skills
+
+    def clean_jobs(self, jobs: List) -> List[Dict[str, Any]]:
+        logger.info(f"Starting clean_jobs() for {self.extractor_name}...")
+        cleaned = []
+        
+        for job in jobs:
+            try:
+                cleaned_job = self.transform(job)
+                if cleaned_job:
+                    cleaned.append(cleaned_job)
+            except Exception:
+                logger.exception(f"Error cleaning job: {job.get('title', 'unknown')}")
+        
+        return cleaned
+
+    @abstractmethod
+    def transform(self, job: Dict[str, Any]) -> Dict[str, Any]:
+        raise NotImplementedError("Subclass must implement transform()")
+    
+    @staticmethod
+    def save_jobs(filename: str, jobs: List[Dict]) -> bool:
+        """Save cleaned jobs to JSON file"""
+        try:
+            logger.info(f"Saving {len(jobs)} jobs to {filename}...")
+            # Remove None values
+            _jobs = [job for job in jobs if job is not None]
+            with open(filename, "w") as f:
+                json.dump(_jobs, f, indent=2, ensure_ascii=False)
+            logger.info(f"Saved {len(_jobs)} jobs successfully")
+            return True
+        except Exception:
+            logger.exception(f"Error saving jobs to {filename}")
+            return False

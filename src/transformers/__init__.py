@@ -1,4 +1,5 @@
 from .soft_skills import SOFT_SKILLS_KEYWORDS
-from .cleaner import Cleaner
+from .careerjet_cleaner import CareerjetCleaner
+from .rozee_cleaner import RozeeCleaner
 
-__all__ = ['SOFT_SKILLS_KEYWORDS','Cleaner']
+__all__ = ['SOFT_SKILLS_KEYWORDS','RozeeCleaner','CareerjetCleaner']

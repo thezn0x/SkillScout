@@ -2,6 +2,10 @@ from src.extractors.rozee import RozeeExtractor
 from src.extractors.careerjet import CareerjetExtractor
 from src.utils.logger import get_logger
 from config.settings import EXTRACTORS
+import os
+
+OUTPUT_DIR = EXTRACTORS["output_dir"]
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 logger = get_logger(__name__)
 

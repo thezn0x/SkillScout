@@ -1,11 +1,7 @@
 from datetime import datetime
-import os
 from .base import Extractor
 from src.utils.logger import get_logger
 from typing import Dict,Any
-
-OUTPUT_DIR = "data/raw"
-os.makedirs(OUTPUT_DIR,exist_ok=True)
 
 # LOGGER
 logger = get_logger(__name__)
