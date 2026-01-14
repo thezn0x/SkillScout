@@ -34,7 +34,7 @@ def main():
                 jobs = json.load(f)
 
             cleaner = TRANSFORMERS_MAP.get(name)(extractor_name=name)
-            cleaned = cleaner.transform(jobs)
+            cleaned = cleaner.clean_jobs(jobs)
 
             cleaner.save_jobs(config["output_path"], cleaned)
             logger.info(f"Cleaned {len(cleaned)} jobs from {name}")
