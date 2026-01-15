@@ -73,7 +73,7 @@ class BaseCleaner(ABC):
             if skill_lower in SOFT_SKILLS_KEYWORDS:
                 soft_skills.append(skill_lower)
             else:
-                core_skills.append(skill)  # Keep original case for tech skills
+                core_skills.append(skill)
         
         return soft_skills, core_skills
 
@@ -97,14 +97,33 @@ class BaseCleaner(ABC):
     
     @staticmethod
     def save_jobs(filename: str, jobs: List[Dict]) -> bool:
-        """Save cleaned jobs to JSON file"""
         try:
             logger.info(f"Saving {len(jobs)} jobs to {filename}...")
             # Remove None values
             _jobs = [job for job in jobs if job is not None]
+            
+            # Deduplicate by title, company, and location
+            seen_jobs_criteria = set()
+            deduplicated_jobs = []
+            
+            for job in _jobs:
+                title = job.get("title", "").strip().lower()
+                company = job.get("company", "").strip().lower()
+                location = job.get("location", "").strip().lower()
+                # A job is considered unique if it has all three criteria
+                if title and company and location:
+                    job_criteria = (title, company, location)
+                    if job_criteria not in seen_jobs_criteria:
+                        deduplicated_jobs.append(job)
+                        seen_jobs_criteria.add(job_criteria)
+                    else:
+                        logger.info(f"Skipping duplicate job based on title, company, location: {job.get('title', 'Unknown Title')} - {job.get('company', 'Unknown Company')} - {job.get('location', 'Unknown Location')}")
+                else:
+                    logger.warning(f"Job missing title, company, or location, skipping for deduplication: {job.get('title', 'Unknown Title')}")
+
             with open(filename, "w") as f:
-                json.dump(_jobs, f, indent=2, ensure_ascii=False)
-            logger.info(f"Saved {len(_jobs)} jobs successfully")
+                json.dump(deduplicated_jobs, f, indent=2, ensure_ascii=False)
+            logger.info(f"Saved {len(deduplicated_jobs)} unique jobs to {filename}. {len(_jobs) - len(deduplicated_jobs)} potential duplicates were removed.")
             return True
         except Exception:
             logger.exception(f"Error saving jobs to {filename}")

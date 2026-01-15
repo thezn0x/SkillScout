@@ -27,3 +27,6 @@ playwright-report/
 
 # Test file
 test.py
+
+#runner
+run.sh
