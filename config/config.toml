@@ -25,3 +25,6 @@ date_pattern = '\d+\s+(?:second|minute|hour|day|week|month|year)s?\s+ago'
 [transformers.rozee]
 output_path = "data/curated/cleaned_rozee.json"
 date_pattern = '(\d+)\s+(hour|day|week|month)s?\s+ago'
+
+[loaders]
+dotenv_path = "config/.env"

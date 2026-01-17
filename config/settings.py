@@ -5,3 +5,4 @@ with open("config/config.toml", "rb") as file:
 
 EXTRACTORS = config["extractors"]
 TRANSFORMERS = config["transformers"]
+LOADERS = config["loaders"]
