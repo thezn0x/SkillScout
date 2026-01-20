@@ -28,5 +28,8 @@ playwright-report/
 # Test file
 test.py
 
-#runner
+# runner
 run.sh
+
+# lock
+uv.lock
