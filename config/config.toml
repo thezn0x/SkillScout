@@ -28,3 +28,11 @@ date_pattern = '(\d+)\s+(hour|day|week|month)s?\s+ago'
 
 [loaders]
 dotenv_path = "config/.env"
+
+[loaders.careerjet]
+platform_name ='careerjet.pk'
+base_url ='https://www.careerjet.com.pk'
+
+[loaders.rozee]
+platform_name ='rozee.pk'
+base_url ='https://www.rozee.pk'
