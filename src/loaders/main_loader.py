@@ -95,4 +95,35 @@ class Loader:
                 "scraped_date": job.get("scraped_date")
             }
             jobs_list.append(job_data)
-        return self.load_get_keys("jobs",jobs_list,['job_id',"title","application_url"])
+        return self.load_get_keys(table,jobs_list,['job_id',"title","application_url"])
+
+    def load_job_skills(self, table:str, data:List[Dict[str,Any]], job_keys:List[Dict[str,Any]], skill_keys:List[Dict[str,Any]]) -> List[Dict[str,Any]]:
+        job_lookup = {job["application_url"]:job["job_id"] for job in job_keys}
+        skill_lookup = {skill["skill_name"]:skill["skill_id"] for skill in skill_keys}
+        junc_list = []
+        for job in data:
+            if job.get("application_url") not in job_lookup:
+                continue
+            job_id = job_lookup.get("application_url")
+            for skill in job.get("skills",[]):
+                if skill not in skill_lookup:
+                    continue
+                skill_id = skill_lookup.get("skill_name")
+                junc_list.append({job_id:skill_id})
+        return self.load_get_keys(table,junc_list,["job_id","skill_id"])
+
+    def load_job_locations(self, table:str, data:List[Dict[str,Any]],job_keys:List[Dict[str,Any]], location_keys:List[Dict[str,Any]]) -> List[Dict[str,Any]]:
+        job_lookup = {job["application_url"]:job["job_id"] for job in job_keys}
+        location_lookup = {(location["city"],location["country"]):location["location_id"] for location in location_keys}
+        jun_list = []
+        for job in data:
+            job_id = job_lookup[job["application_url"]]
+            location_str = job.get('location')
+            parts = location_str.split(",")
+            city = parts[0]
+            country = parts[1] if len(parts)>1 else "Pakistan"
+            loc = (city, country)
+            if loc in location_lookup:
+                loc_id = location_lookup[loc]
+                jun_list.append({job_id:loc_id})
+        return self.load_get_keys(table,jun_list,["job_id","location_id"])

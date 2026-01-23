@@ -30,6 +30,7 @@ test.py
 
 # runner
 run.sh
+fetchdatabase.sh
 
 # lock
 uv.lock
