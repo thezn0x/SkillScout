@@ -1,6 +1,6 @@
 from playwright.sync_api import sync_playwright
 import json
-from typing import List,Dict,Any
+from typing import List,Dict,Any,Union
 from .roles import one_role
 from src.utils.logger import get_logger
 
@@ -13,7 +13,7 @@ class Extractor:
         self.card = card
         self.role = one_role
 
-    def fetch_jobs(self, max_pages:int = 1) -> List[Any]:
+    def fetch_jobs(self, max_pages:int = 1) -> Union[bool,List[Any]]:
         jobs = []
         try:
             with sync_playwright() as p:
@@ -39,7 +39,7 @@ class Extractor:
         return " ".join(text.split()).strip(" ,.-") if text else ""
 
     @staticmethod
-    def save_jobs(filename: str, jobs: List[Dict]) -> None:
+    def save_jobs(filename: str, jobs: List[Dict]) -> bool:
         try:
             logger.info("Saving jobs...")
             with open(filename, "w") as f:

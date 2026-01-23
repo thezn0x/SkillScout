@@ -3,13 +3,13 @@ import re
 from datetime import datetime
 from .base import Extractor
 from src.utils.logger import get_logger
-from typing import Dict,Any
+from typing import Dict,Any,Union
 
 # LOGGER
 logger = get_logger(__name__)
 
 class RozeeExtractor(Extractor):
-    def extract(self,card) -> Dict[str,Any]:
+    def extract(self,card) -> Union[bool,None,Dict[str,Any]]:
         job = {}  # TO STORE JOB DATA
         try:
             # GET TITLE

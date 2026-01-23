@@ -1,9 +1,9 @@
 # Database
 psycopg[binary]>=3.1.0
-znpg>=1.0.0 # My own library
+znpg>=1.1.0 # My own library
 
 # Data processing
-pandas>=2.0.0
+pandas>=3.0.0
 numpy>=1.24.0
 
 # Scraping

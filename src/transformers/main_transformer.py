@@ -1,8 +1,13 @@
-from typing import Any, Dict, List
-from src.utils.logger import get_logger
 from .soft_skills import SOFT_SKILLS_KEYWORDS
-import json
+from src.utils.logger import get_logger
+from datetime import timedelta,datetime
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List
+from config.settings import LOADERS
+from dotenv import load_dotenv
+from znpg import Database
+import json
+import os
 
 logger = get_logger(__name__)
 
@@ -20,7 +25,7 @@ class BaseCleaner(ABC):
         cleaned_job = {}
 
         cleaned_job["title"] = self._clean_text(job.get("title", ""))
-        cleaned_job["url"] = self._clean_text(job.get("url", ""))
+        cleaned_job["application_url"] = self._clean_text(job.get("url", ""))
         cleaned_job["location"] = self._clean_text(job.get("location", ""))
         cleaned_job["description"] = self._clean_text(job.get("description", ""))
         cleaned_job["company"] = self._clean_text(job.get("company", ""))
@@ -28,11 +33,14 @@ class BaseCleaner(ABC):
         
         # Copy other fields that don't need text cleaning
         cleaned_job["posted_date"] = job.get("posted_date")
+        cleaned_job["apply_before"] = datetime.fromisoformat(job.get("posted_date")) + timedelta(10)
         cleaned_job["salary"] = job.get("salary")
+        cleaned_job["salary_currency"] = "PKR"
         cleaned_job["experience_text"] = job.get("experience_text")
-        cleaned_job["experience_years"] = job.get("experience_years")
+        cleaned_job["min_experience"] = job.get("experience_years")
         cleaned_job["skills"] = job.get("skills", [])
-        cleaned_job["scraped_at"] = job.get("scraped_at")
+        cleaned_job["requirements"] = job.get("skills", [])
+        cleaned_job["scraped_date"] = job.get("scraped_at")
 
         return cleaned_job
 

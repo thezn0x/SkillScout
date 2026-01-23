@@ -27,7 +27,7 @@ class Loader:
     def load_get_keys(table:str, to_load:List[Dict[str,Any]], columns:List[str]) -> List[Dict[str,Any]]:
         with Database() as db:
             db.url_connect(os.getenv("DATABASE_URL"))
-            db.bulk_insert(table,to_load)
+            db.bulk_insert(table,to_load,"DO NOTHING")
             keys = db.select(table, columns)
         return keys
 
@@ -65,10 +65,34 @@ class Loader:
                 all_platforms.append(platform_data)
         return self.load_get_keys(table,all_platforms,["platform_id", "platform_name"])
 
-    def load_locations(self, table:str, data:List[Dict[str,Any]]):
+    def load_locations(self, table:str, data:List[Dict[str,Any]]) -> List[Dict[str, Any]]:
         locations = self.get_unique(data, "location")
         location_list = []
         for location in locations:
             string_parts = location.split(",")
-            location_list.append({"city": string_parts[0].strip(), "country": string_parts[1].strip()})
-        return self.load_get_keys(table,location_list,["location_id","city"])
+            if len(string_parts) > 1:
+                location_list.append({"city": string_parts[0].strip(), "country": string_parts[1].strip()})
+            else:
+                location_list.append({"city":string_parts[0].strip(),"country":"Pakistan"})
+        return self.load_get_keys(table,location_list,["location_id","city","country"])
+
+    def load_jobs(self, table:str, data:List[Dict[str,Any]], company_keys:List[Dict[str,Any]]) -> List[Dict[str, Any]]:
+        jobs_list = []
+        company_map = {c["name"]: c["company_id"] for c in company_keys}
+        for job in data:
+            if job["company"] not in company_map:
+                continue
+            job_data = {
+                "title": job["title"],
+                "company_id": company_map[job["company"]],
+                "description": job.get("description"),
+                "application_url": job.get("application_url"),
+                "min_salary": job.get("min_salary"),
+                "max_salary": job.get("max_salary"),
+                "posted_date": job.get("posted_date"),
+                "min_experience": job.get("min_experience"),
+                "salary_currency": "PKR",
+                "scraped_date": job.get("scraped_date")
+            }
+            jobs_list.append(job_data)
+        return self.load_get_keys("jobs",jobs_list,['job_id',"title","application_url"])

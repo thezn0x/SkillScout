@@ -1,13 +1,13 @@
 from datetime import datetime
 from .base import Extractor
 from src.utils.logger import get_logger
-from typing import Dict,Any
+from typing import Dict,Any,Union
 
 # LOGGER
 logger = get_logger(__name__)
 
 class CareerjetExtractor(Extractor):
-    def extract(self,card) -> Dict[str,Any]:
+    def extract(self,card) -> Union[bool,Dict[str,Any]]:
         job={}
         def get_text(selector:str):
             element = card.query_selector(selector)
