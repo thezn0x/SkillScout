@@ -123,21 +123,37 @@ class Loader:
         except Exception as e:
             logger.exception("Critical error while performing %s: %s", __name__,e)
 
-    def load_job_skills(self, table:str, data:List[Dict[str,Any]], job_keys:List[Dict[str,Any]], skill_keys:List[Dict[str,Any]]) -> Union[None,List[Dict[str,Any]]]:
+    def junction_abstraction(self,table:str, data:List[Dict[str,Any]], job_keys:List[Dict[str,Any]], entity_keys:List[Dict[str,Any]], job_field:str, entity_field:str, entity_name:str) -> Union[None,List[Dict[str,Any]]]:
         try:
-            job_lookup = {job["application_url"]:job["job_id"] for job in job_keys}
-            skill_lookup = {skill["skill_name"]:skill["skill_id"] for skill in skill_keys}
+            job_lookup = {job["application_url"]: job["job_id"] for job in job_keys}
+            entity_lookup = {entity[entity_field]: entity[entity_name] for entity in entity_keys}
             junc_list = []
             for job in data:
-                if job.get("application_url") not in job_lookup:
+                if job.get('application_url') not in job_lookup:
                     continue
-                job_id = job_lookup.get("application_url")
-                for skill in job.get("skills",[]):
-                    if skill not in skill_lookup:
+                job_id = job_lookup['application_url']
+                values = job.get(job_field)
+                if not value:
+                    continue
+                if not isinstance(value,list):
+                    values = [values]
+                for value in values:
+                    if value not in entity_lookup:
                         continue
-                    skill_id = skill_lookup.get("skill_name")
-                    junc_list.append({job_id:skill_id})
-            return self.load_get_keys(table,junc_list,["job_id","skill_id"])
+                    entity_id = entity_lookup[value]
+                    junc_list.append({'job_id':job_id, entity_name:entity_id})
+            return self.load_get_keys(table, junc_list, ["job_id", entity_name])
+        except Exception as e:
+            logger.exception("Critical error while performing %s: %s", __name__,e)
+
+    def load_job_skills(self, table:str, data:List[Dict[str,Any]], job_keys:List[Dict[str,Any]], skill_keys:List[Dict[str,Any]]) -> Union[None,List[Dict[str,Any]]]:
+        try:
+            return self.junction_abstraction(
+                table, data, job_keys, skill_keys,
+                job_field="core_skills",
+                entity_field="skill_name",
+                entity_name="skill_id"
+            )
         except Exception as e:
             logger.exception("Critical error while performing %s: %s", __name__,e)
 
@@ -162,18 +178,11 @@ class Loader:
 
     def load_job_platforms(self, table:str, data:List[Dict[str,Any]], job_keys:List[Dict[str,Any]], platform_keys:List[Dict[str,Any]]) -> Union[None,List[Dict[str,Any]]]:
         try:
-            job_lookup = {job["application_url"]:job["job_id"] for job in job_keys}
-            platforms_lookup = {platform["platform_name"]:platform["platform_id"] for platform in platform_keys}
-            junc_list = []
-            for job in data:
-                if job["platform"] not in platforms_lookup:
-                    continue
-                job_id = job_lookup.get("application_url")
-                for platform in job.get("skills", []):
-                    if platform not in platforms_lookup:
-                        continue
-                    platforms_id = platforms_lookup.get("platform_name")
-                    junc_list.append({job_id: platforms_id})
-            return self.load_get_keys(table, junc_list, ["job_id", "platform_id"])
+            return self.junction_abstraction(
+                table, data, job_keys, platform_keys,
+                job_field="source",
+                entity_field="platform_name",
+                entity_name="platform_id"
+            )
         except Exception as e:
             logger.exception("Critical error while performing %s: %s", __name__,e)
