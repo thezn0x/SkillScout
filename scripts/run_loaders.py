@@ -15,11 +15,17 @@ def main() -> Union[Dict[str,Any],None]:
     try:
         loader = Loader(__name__)
         data = loader.get_data(DATA_MAP)
+        logger.info("Loading skills to the database...")
         skill_keys = loader.load_skills("skills",data)
+        logger.info("Loading locations to the database...")
         location_keys = loader.load_locations("locations",data)
+        logger.info("Loading companies to the database...")
         company_keys = loader.load_companies("companies",data)
+        logger.info("Loading platforms to the database...")
         platform_keys = loader.load_platforms("platforms",LOADERS)
+        logger.info("Loading jobs to the database...")
         job_keys = loader.load_jobs("jobs",data,company_keys)
+        logger.info("Loading junction tables...")
         job_skills_keys = loader.load_job_skills("job_skills",data,job_keys,skill_keys)
         job_location_keys = loader.load_job_locations("job_locations",data,job_keys, location_keys)
         job_platform_keys = loader.load_job_platforms("job_platforms",data,job_keys, platform_keys)
@@ -33,7 +39,7 @@ def main() -> Union[Dict[str,Any],None]:
             'job_location_keys' : job_location_keys,
             'job_platform_keys' : job_platform_keys
         }
-        logger.info("Loaded all data successfully")
+        logger.info("Loading complete! Loaded all data successfully.")
         return keys
     except Exception as e:
         logger.error("Error while performing %s: %s",__name__,e)

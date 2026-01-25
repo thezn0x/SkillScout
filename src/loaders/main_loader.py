@@ -131,11 +131,11 @@ class Loader:
             for job in data:
                 if job.get('application_url') not in job_lookup:
                     continue
-                job_id = job_lookup['application_url']
+                job_id = job_lookup[job.get('application_url')]
                 values = job.get(job_field)
-                if not value:
+                if not values:
                     continue
-                if not isinstance(value,list):
+                if not isinstance(values,list):
                     values = [values]
                 for value in values:
                     if value not in entity_lookup:
@@ -166,12 +166,12 @@ class Loader:
                 job_id = job_lookup[job["application_url"]]
                 location_str = job.get('location')
                 parts = location_str.split(",")
-                city = parts[0]
+                city = parts[0].strip()
                 country = parts[1] if len(parts)>1 else "Pakistan"
                 loc = (city, country)
                 if loc in location_lookup:
                     loc_id = location_lookup[loc]
-                    jun_list.append({job_id:loc_id})
+                    jun_list.append({'job_id':job_id,'location_id':loc_id})
             return self.load_get_keys(table,jun_list,["job_id","location_id"])
         except Exception as e:
             logger.exception("Critical error while performing %s: %s", __name__,e)

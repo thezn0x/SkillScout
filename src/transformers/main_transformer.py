@@ -32,15 +32,12 @@ class BaseCleaner(ABC):
         cleaned_job["source"] = job.get("source", "unknown")
         
         # Copy other fields that don't need text cleaning
-        cleaned_job["posted_date"] = job.get("posted_date")
-        cleaned_job["apply_before"] = datetime.fromisoformat(job.get("posted_date")) + timedelta(10)
         cleaned_job["salary"] = job.get("salary")
         cleaned_job["salary_currency"] = "PKR"
         cleaned_job["experience_text"] = job.get("experience_text")
         cleaned_job["min_experience"] = job.get("experience_years")
         cleaned_job["skills"] = job.get("skills", [])
         cleaned_job["requirements"] = job.get("skills", [])
-        cleaned_job["scraped_date"] = job.get("scraped_at")
 
         return cleaned_job
 

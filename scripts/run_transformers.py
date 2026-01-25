@@ -35,8 +35,9 @@ def main():
 
             cleaner = TRANSFORMERS_MAP.get(name)(extractor_name=name)
             cleaned = cleaner.clean_jobs(jobs)
+            curated = [job for job in cleaned if job["company"] != "N/A"]
 
-            cleaner.save_jobs(config["output_path"], cleaned)
+            cleaner.save_jobs(config["output_path"], curated)
             logger.info(f"Cleaned {len(cleaned)} jobs from {name}")
         
     except Exception:
